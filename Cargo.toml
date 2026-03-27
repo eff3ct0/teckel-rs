@@ -1,0 +1,33 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/teckel-model",
+    "crates/teckel-parser",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+license = "Apache-2.0"
+repository = "https://github.com/eff3ct0/teckel-rs"
+authors = ["Rafael Fernandez <eff3ct0>"]
+
+[workspace.dependencies]
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.9"
+serde_json = "1.0"
+
+# Parsing
+regex = "1.10"
+
+# Graph
+petgraph = "0.6"
+
+# Error handling
+thiserror = "2"
+
+# Internal crates
+teckel-model = { path = "crates/teckel-model" }
+teckel-parser = { path = "crates/teckel-parser" }

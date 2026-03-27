@@ -1,0 +1,17 @@
+[package]
+name = "teckel-parser"
+description = "YAML parsing, expression language, resolution, and validation for Teckel v2.0"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+teckel-model = { workspace = true }
+serde = { workspace = true }
+serde_yaml = { workspace = true }
+serde_json = { workspace = true }
+regex = { workspace = true }
+thiserror = { workspace = true }
+petgraph = { workspace = true }
