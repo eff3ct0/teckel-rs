@@ -1,5 +1,6 @@
 pub mod asset;
 pub mod error;
+pub mod expr;
 pub mod pipeline;
 pub mod quality;
 pub mod source;
