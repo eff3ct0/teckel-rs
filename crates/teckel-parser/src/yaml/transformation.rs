@@ -1,5 +1,6 @@
 use super::operations::*;
 use serde::Deserialize;
+use std::collections::BTreeMap;
 
 /// YAML representation of a transformation entry (Section 8).
 ///
@@ -8,6 +9,11 @@ use serde::Deserialize;
 #[derive(Debug, Deserialize)]
 pub struct RawTransformation {
     pub name: String,
+    pub description: Option<String>,
+    pub tags: Option<Vec<String>>,
+    #[serde(rename = "removeTags")]
+    pub remove_tags: Option<Vec<String>>,
+    pub meta: Option<BTreeMap<String, serde_yaml::Value>>,
     #[serde(flatten)]
     pub operation: TransformationOp,
 }

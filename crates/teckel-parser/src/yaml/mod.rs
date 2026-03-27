@@ -1,7 +1,7 @@
-mod document;
-mod input;
+pub mod document;
+pub mod input;
 pub mod operations;
-mod output;
+pub mod output;
 mod transformation;
 
 pub use document::Document;

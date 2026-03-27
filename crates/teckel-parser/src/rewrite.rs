@@ -1,5 +1,6 @@
 use crate::yaml::{self, TransformationOp};
-use teckel_model::asset::{Asset, Context};
+use teckel_model::asset::{Asset, AssetMetadata, ColumnMetadata, Context};
+use teckel_model::pipeline::Owner;
 use teckel_model::source::*;
 use teckel_model::types::*;
 use teckel_model::{TeckelError, TeckelErrorCode};
@@ -10,6 +11,18 @@ pub fn to_context(doc: &yaml::Document) -> Result<Context, TeckelError> {
 
     // Rewrite inputs
     for input in &doc.input {
+        let metadata = AssetMetadata {
+            description: input.description.clone(),
+            tags: input.tags.clone().unwrap_or_default(),
+            meta: input.meta.clone().unwrap_or_default(),
+            owner: input.owner.as_ref().map(rewrite_owner),
+            columns: input
+                .columns
+                .as_ref()
+                .map(|cols| cols.iter().map(rewrite_column_metadata).collect())
+                .unwrap_or_default(),
+            ..Default::default()
+        };
         let asset = Asset {
             asset_ref: input.name.clone(),
             source: Source::Input(InputSource {
@@ -17,6 +30,7 @@ pub fn to_context(doc: &yaml::Document) -> Result<Context, TeckelError> {
                 path: input.path.clone(),
                 options: input.options.clone(),
             }),
+            metadata,
         };
         if context.insert(input.name.clone(), asset).is_some() {
             return Err(TeckelError::spec(
@@ -31,6 +45,8 @@ pub fn to_context(doc: &yaml::Document) -> Result<Context, TeckelError> {
         for t in transformations {
             let source = rewrite_transformation(t)?;
 
+            let metadata = rewrite_transformation_metadata(t);
+
             // Split produces two assets (pass/fail), not the named one
             if let Source::Split(ref split) = source {
                 let pass_asset = Asset {
@@ -39,6 +55,7 @@ pub fn to_context(doc: &yaml::Document) -> Result<Context, TeckelError> {
                         from: split.from.clone(),
                         filter: split.condition.clone(),
                     }),
+                    metadata: metadata.clone(),
                 };
                 let fail_asset = Asset {
                     asset_ref: split.fail.clone(),
@@ -46,6 +63,7 @@ pub fn to_context(doc: &yaml::Document) -> Result<Context, TeckelError> {
                         from: split.from.clone(),
                         filter: format!("NOT({})", split.condition),
                     }),
+                    metadata,
                 };
                 check_dup(&context, &split.pass)?;
                 context.insert(split.pass.clone(), pass_asset);
@@ -56,6 +74,7 @@ pub fn to_context(doc: &yaml::Document) -> Result<Context, TeckelError> {
                 let asset = Asset {
                     asset_ref: t.name.clone(),
                     source,
+                    metadata,
                 };
                 context.insert(t.name.clone(), asset);
             }
@@ -80,6 +99,14 @@ pub fn to_context(doc: &yaml::Document) -> Result<Context, TeckelError> {
         };
 
         let output_key = format!("output_{}", output.name);
+        let metadata = AssetMetadata {
+            description: output.description.clone(),
+            tags: output.tags.clone().unwrap_or_default(),
+            meta: output.meta.clone().unwrap_or_default(),
+            freshness: output.freshness.clone(),
+            maturity: output.maturity.clone(),
+            ..Default::default()
+        };
         let asset = Asset {
             asset_ref: output_key.clone(),
             source: Source::Output(OutputSource {
@@ -89,6 +116,7 @@ pub fn to_context(doc: &yaml::Document) -> Result<Context, TeckelError> {
                 mode,
                 options: output.options.clone(),
             }),
+            metadata,
         };
         context.insert(output_key, asset);
     }
@@ -373,6 +401,35 @@ fn rewrite_sort_column(sc: &yaml::operations::SortColumnDef) -> SortColumn {
                 NullOrdering::Last
             },
         },
+    }
+}
+
+fn rewrite_transformation_metadata(t: &yaml::RawTransformation) -> AssetMetadata {
+    AssetMetadata {
+        description: t.description.clone(),
+        tags: t.tags.clone().unwrap_or_default(),
+        remove_tags: t.remove_tags.clone().unwrap_or_default(),
+        meta: t.meta.clone().unwrap_or_default(),
+        ..Default::default()
+    }
+}
+
+fn rewrite_owner(o: &crate::yaml::document::OwnerDef) -> Owner {
+    Owner {
+        name: o.name.clone(),
+        email: o.email.clone(),
+        owner_type: o.owner_type.clone(),
+    }
+}
+
+fn rewrite_column_metadata(c: &crate::yaml::input::ColumnMetadataDef) -> ColumnMetadata {
+    ColumnMetadata {
+        name: c.name.clone(),
+        description: c.description.clone(),
+        tags: c.tags.clone().unwrap_or_default(),
+        constraints: c.constraints.clone().unwrap_or_default(),
+        meta: c.meta.clone().unwrap_or_default(),
+        glossary_term: None,
     }
 }
 

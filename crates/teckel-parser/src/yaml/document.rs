@@ -61,6 +61,28 @@ pub struct PipelineMetadataDef {
     pub meta: Option<BTreeMap<String, serde_yaml::Value>>,
     pub schedule: Option<String>,
     pub freshness: Option<String>,
+    pub links: Option<Vec<LinkDef>>,
+    pub contacts: Option<Vec<ContactDef>>,
+    pub catalog: Option<CatalogDef>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct LinkDef {
+    pub label: String,
+    pub url: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ContactDef {
+    pub name: String,
+    pub email: String,
+    pub role: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CatalogDef {
+    pub target: String,
+    pub namespace: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
