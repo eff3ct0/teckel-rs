@@ -1,5 +1,39 @@
+use crate::asset::Context;
+use crate::quality::QualitySuite;
 use crate::types::*;
 use std::collections::BTreeMap;
+
+/// The complete parsed pipeline — everything from a Teckel v2.0 document.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct Pipeline {
+    /// All assets (inputs, transformations, outputs) keyed by name.
+    pub context: Context,
+    /// Pipeline-level metadata (§18).
+    pub metadata: PipelineMetadata,
+    /// Pipeline-wide configuration (§14).
+    pub config: PipelineConfig,
+    /// Lifecycle hooks (§16).
+    pub hooks: Hooks,
+    /// Data quality suites (§17).
+    pub quality: Vec<QualitySuite>,
+    /// Reusable templates (§20).
+    pub templates: Vec<Template>,
+    /// Downstream consumer declarations (§19).
+    pub exposures: Vec<Exposure>,
+    /// Streaming inputs (§15).
+    pub streaming_inputs: Vec<StreamingInput>,
+    /// Streaming outputs (§15).
+    pub streaming_outputs: Vec<StreamingOutput>,
+    /// Secret key declarations (§13).
+    pub secrets: BTreeMap<String, SecretKey>,
+}
+
+/// A secret key declaration.
+#[derive(Debug, Clone, PartialEq)]
+pub struct SecretKey {
+    pub scope: Option<String>,
+    pub key: String,
+}
 
 /// Pipeline-level metadata (Section 18.2).
 #[derive(Debug, Clone, Default, PartialEq)]

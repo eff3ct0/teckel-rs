@@ -8,5 +8,6 @@ pub mod types;
 
 pub use asset::{Asset, AssetMetadata, ColumnMetadata, Context};
 pub use error::{TeckelError, TeckelErrorCode};
+pub use pipeline::Pipeline;
 pub use source::Source;
 pub use types::AssetRef;

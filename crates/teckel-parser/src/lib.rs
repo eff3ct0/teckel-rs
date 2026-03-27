@@ -4,9 +4,9 @@ pub mod rewrite;
 pub mod validate;
 pub mod yaml;
 
-use teckel_model::{Context, TeckelError};
+use teckel_model::{Context, Pipeline, TeckelError};
 
-/// Parse a raw YAML string into a validated domain model context.
+/// Parse a raw YAML string into a fully validated `Pipeline`.
 ///
 /// Processing pipeline (Section 4.1):
 /// 1. Variable substitution
@@ -19,7 +19,7 @@ use teckel_model::{Context, TeckelError};
 pub fn parse(
     yaml: &str,
     variables: &std::collections::BTreeMap<String, String>,
-) -> Result<Context, TeckelError> {
+) -> Result<Pipeline, TeckelError> {
     // 1. Variable substitution
     let resolved = resolve::variables::substitute(yaml, variables)?;
 
@@ -30,13 +30,23 @@ pub fn parse(
     // 3. Validate version
     validate::check_version(&document)?;
 
-    // 4. Rewrite to domain model
-    let context = rewrite::to_context(&document)?;
+    // 4. Rewrite to full pipeline (includes context + all top-level sections)
+    let pipeline = rewrite::to_pipeline(&document)?;
 
     // 5. Semantic validation
-    validate::validate(&context, &document)?;
+    validate::validate(&pipeline.context, &document)?;
 
-    Ok(context)
+    Ok(pipeline)
+}
+
+/// Parse a raw YAML string into just the asset context (without pipeline metadata).
+/// Use `parse()` instead for full pipeline access.
+pub fn parse_context(
+    yaml: &str,
+    variables: &std::collections::BTreeMap<String, String>,
+) -> Result<Context, TeckelError> {
+    let pipeline = parse(yaml, variables)?;
+    Ok(pipeline.context)
 }
 
 #[cfg(test)]
@@ -75,13 +85,13 @@ output:
     path: "output/employees"
     mode: overwrite
 "#;
-        let context = parse(yaml, &BTreeMap::new()).unwrap();
+        let pipeline = parse(yaml, &BTreeMap::new()).unwrap();
 
-        assert!(context.contains_key("employees"));
-        assert!(context.contains_key("filtered"));
-        assert!(context.contains_key("projected"));
-        assert!(context.contains_key("output_projected"));
-        assert_eq!(context.len(), 4);
+        assert!(pipeline.context.contains_key("employees"));
+        assert!(pipeline.context.contains_key("filtered"));
+        assert!(pipeline.context.contains_key("projected"));
+        assert!(pipeline.context.contains_key("output_projected"));
+        assert_eq!(pipeline.context.len(), 4);
     }
 
     #[test]
@@ -115,8 +125,8 @@ output:
     path: "out.csv"
 "#;
         let vars = BTreeMap::from([("DATA_PATH".to_string(), "/tmp/test".to_string())]);
-        let context = parse(yaml, &vars).unwrap();
-        let asset = context.get("data").unwrap();
+        let pipeline = parse(yaml, &vars).unwrap();
+        let asset = pipeline.context.get("data").unwrap();
         match &asset.source {
             teckel_model::Source::Input(input) => {
                 assert_eq!(input.path, "/tmp/test/input.csv");
@@ -153,9 +163,9 @@ output:
     path: "output/enriched"
     mode: overwrite
 "#;
-        let context = parse(yaml, &BTreeMap::new()).unwrap();
-        assert!(context.contains_key("enriched"));
-        let asset = context.get("enriched").unwrap();
+        let pipeline = parse(yaml, &BTreeMap::new()).unwrap();
+        assert!(pipeline.context.contains_key("enriched"));
+        let asset = pipeline.context.get("enriched").unwrap();
         assert_eq!(asset.source.dependencies().len(), 2);
     }
 
@@ -230,8 +240,8 @@ output:
     format: csv
     path: "out.csv"
 "#;
-        let context = parse(yaml, &BTreeMap::new()).unwrap();
+        let pipeline = parse(yaml, &BTreeMap::new()).unwrap();
         // 2 inputs + 10 transforms + 1 output = 13
-        assert_eq!(context.len(), 13);
+        assert_eq!(pipeline.context.len(), 13);
     }
 }
