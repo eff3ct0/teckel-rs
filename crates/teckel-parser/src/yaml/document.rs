@@ -1,5 +1,8 @@
+use super::exposure::ExposureDef;
 use super::input::InputDef;
 use super::output::OutputDef;
+use super::quality::QualitySuiteDef;
+use super::streaming::{StreamingInputDef, StreamingOutputDef};
 use super::transformation::RawTransformation;
 use serde::Deserialize;
 use std::collections::BTreeMap;
@@ -24,7 +27,7 @@ pub struct Document {
     pub hooks: Option<HooksDef>,
 
     /// Data quality suites.
-    pub quality: Option<Vec<serde_yaml::Value>>,
+    pub quality: Option<Vec<QualitySuiteDef>>,
 
     /// Reusable templates.
     pub templates: Option<Vec<TemplateDef>>,
@@ -34,7 +37,7 @@ pub struct Document {
 
     /// Streaming source definitions.
     #[serde(rename = "streamingInput")]
-    pub streaming_input: Option<Vec<serde_yaml::Value>>,
+    pub streaming_input: Option<Vec<StreamingInputDef>>,
 
     /// Transformation definitions.
     pub transformation: Option<Vec<RawTransformation>>,
@@ -44,10 +47,10 @@ pub struct Document {
 
     /// Streaming sink definitions.
     #[serde(rename = "streamingOutput")]
-    pub streaming_output: Option<Vec<serde_yaml::Value>>,
+    pub streaming_output: Option<Vec<StreamingOutputDef>>,
 
     /// Downstream consumer declarations.
-    pub exposures: Option<Vec<serde_yaml::Value>>,
+    pub exposures: Option<Vec<ExposureDef>>,
 }
 
 #[derive(Debug, Deserialize)]
