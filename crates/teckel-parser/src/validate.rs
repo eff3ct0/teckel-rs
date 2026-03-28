@@ -189,6 +189,75 @@ fn suggest_similar(name: &str, known: &HashSet<&str>) -> String {
     }
 }
 
+/// Validate all expression strings in the context by parsing them.
+pub fn validate_expressions(context: &Context) -> Result<(), TeckelError> {
+    use crate::expr::parse_expression;
+
+    let mut errors = Vec::new();
+
+    for (name, asset) in context {
+        let expressions = collect_expressions(&asset.source);
+        for expr_str in expressions {
+            if let Err(e) = parse_expression(expr_str) {
+                errors.push(TeckelError::spec(
+                    TeckelErrorCode::EExpr001,
+                    format!("invalid expression in \"{name}\": {e} (expression: \"{expr_str}\")"),
+                ));
+            }
+        }
+    }
+
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        let count = errors.len();
+        Err(TeckelError::Validation { count, errors })
+    }
+}
+
+/// Collect all expression/condition strings from a source for validation.
+fn collect_expressions(source: &teckel_model::source::Source) -> Vec<&str> {
+    use teckel_model::source::Source;
+    match source {
+        Source::Input(_) | Source::Output(_) => vec![],
+        Source::Select(t) => t.columns.iter().map(|s| s.as_str()).collect(),
+        Source::Where(t) => vec![t.filter.as_str()],
+        Source::GroupBy(t) => t.agg.iter().map(|s| s.as_str()).collect(),
+        Source::OrderBy(_) => vec![],
+        Source::Join(t) => t
+            .right
+            .iter()
+            .flat_map(|jt| jt.on.iter().map(|s| s.as_str()))
+            .collect(),
+        Source::Union(_) | Source::Intersect(_) | Source::Except(_) => vec![],
+        Source::Distinct(_) | Source::Limit(_) => vec![],
+        Source::AddColumns(t) => t.columns.iter().map(|c| c.expression.as_str()).collect(),
+        Source::DropColumns(_) | Source::RenameColumns(_) => vec![],
+        Source::CastColumns(_) => vec![],
+        Source::Window(t) => t.functions.iter().map(|f| f.expression.as_str()).collect(),
+        Source::Pivot(t) => t.agg.iter().map(|s| s.as_str()).collect(),
+        Source::Unpivot(_) | Source::Flatten(_) | Source::Sample(_) => vec![],
+        Source::Conditional(t) => {
+            let mut exprs: Vec<&str> = t
+                .branches
+                .iter()
+                .flat_map(|b| [b.condition.as_str(), b.value.as_str()])
+                .collect();
+            if let Some(o) = &t.otherwise {
+                exprs.push(o.as_str());
+            }
+            exprs
+        }
+        Source::Split(t) => vec![t.condition.as_str()],
+        Source::Sql(_) => vec![], // SQL is opaque — validated by the backend
+        Source::Rollup(t) => t.agg.iter().map(|s| s.as_str()).collect(),
+        Source::Cube(t) => t.agg.iter().map(|s| s.as_str()).collect(),
+        Source::Scd2(_) | Source::Enrich(_) | Source::SchemaEnforce(_) => vec![],
+        Source::Assertion(t) => t.checks.iter().map(|c| c.rule.as_str()).collect(),
+        Source::Repartition(_) | Source::Coalesce(_) | Source::Custom(_) => vec![],
+    }
+}
+
 fn levenshtein(a: &str, b: &str) -> usize {
     let a_bytes = a.as_bytes();
     let b_bytes = b.as_bytes();

@@ -4,43 +4,79 @@ pub mod rewrite;
 pub mod validate;
 pub mod yaml;
 
+pub mod dag;
+
+use resolve::secrets::{EnvSecretsProvider, SecretsProvider};
 use teckel_model::{Context, Pipeline, TeckelError};
+
+/// Options for the parsing pipeline.
+pub struct ParseOptions<'a> {
+    pub variables: &'a std::collections::BTreeMap<String, String>,
+    pub secrets_provider: &'a dyn SecretsProvider,
+    pub validate_expressions: bool,
+}
+
+impl<'a> ParseOptions<'a> {
+    pub fn with_variables(variables: &'a std::collections::BTreeMap<String, String>) -> Self {
+        Self {
+            variables,
+            secrets_provider: &EnvSecretsProvider,
+            validate_expressions: false,
+        }
+    }
+}
 
 /// Parse a raw YAML string into a fully validated `Pipeline`.
 ///
 /// Processing pipeline (Section 4.1):
 /// 1. Variable substitution
-/// 2. Config merging (if overlay provided)
+/// 2. Secret resolution
 /// 3. YAML parsing
-/// 4. Secret resolution
-/// 5. Schema validation (via serde)
+/// 4. Version validation
+/// 5. Rewrite to domain model
 /// 6. Semantic validation (V-001..V-008)
-/// 7. Rewrite to domain model
+/// 7. Expression validation (optional)
+/// 8. Tag propagation (§18.7)
 pub fn parse(
     yaml: &str,
     variables: &std::collections::BTreeMap<String, String>,
 ) -> Result<Pipeline, TeckelError> {
-    // 1. Variable substitution
-    let resolved = resolve::variables::substitute(yaml, variables)?;
+    parse_with_options(yaml, &ParseOptions::with_variables(variables))
+}
 
-    // 2. YAML parsing
+/// Parse with full control over options (secrets provider, expression validation).
+pub fn parse_with_options(yaml: &str, options: &ParseOptions<'_>) -> Result<Pipeline, TeckelError> {
+    // 1. Variable substitution
+    let resolved = resolve::variables::substitute(yaml, options.variables)?;
+
+    // 2. Secret resolution
+    let resolved = resolve::secrets::resolve_secrets(&resolved, options.secrets_provider)?;
+
+    // 3. YAML parsing
     let document: yaml::Document =
         serde_yaml::from_str(&resolved).map_err(|e| TeckelError::Yaml(e.to_string()))?;
 
-    // 3. Validate version
+    // 4. Validate version
     validate::check_version(&document)?;
 
-    // 4. Rewrite to full pipeline (includes context + all top-level sections)
-    let pipeline = rewrite::to_pipeline(&document)?;
+    // 5. Rewrite to full pipeline
+    let mut pipeline = rewrite::to_pipeline(&document)?;
 
-    // 5. Semantic validation
+    // 6. Semantic validation
     validate::validate(&pipeline.context, &document)?;
+
+    // 7. Expression validation (optional)
+    if options.validate_expressions {
+        validate::validate_expressions(&pipeline.context)?;
+    }
+
+    // 8. Tag propagation (§18.7)
+    dag::propagate_tags(&mut pipeline)?;
 
     Ok(pipeline)
 }
 
 /// Parse a raw YAML string into just the asset context (without pipeline metadata).
-/// Use `parse()` instead for full pipeline access.
 pub fn parse_context(
     yaml: &str,
     variables: &std::collections::BTreeMap<String, String>,
