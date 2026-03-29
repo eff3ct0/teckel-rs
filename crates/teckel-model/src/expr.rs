@@ -1,5 +1,25 @@
 //! Expression AST for the Teckel expression language (Section 9).
 
+use crate::types::{FrameType, NullOrdering, SortDirection};
+
+/// Window frame specification for inline window expressions.
+#[derive(Debug, Clone, PartialEq)]
+pub struct WindowFrame {
+    pub frame_type: FrameType,
+    pub start: FrameBound,
+    pub end: FrameBound,
+}
+
+/// Window frame boundary.
+#[derive(Debug, Clone, PartialEq)]
+pub enum FrameBound {
+    UnboundedPreceding,
+    UnboundedFollowing,
+    CurrentRow,
+    Preceding(Box<Expr>),
+    Following(Box<Expr>),
+}
+
 /// A parsed Teckel expression.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
@@ -59,6 +79,68 @@ pub enum Expr {
     Alias { expr: Box<Expr>, alias: String },
     /// Wildcard `*` — used in `count(*)`.
     Wildcard,
+    /// `expr RLIKE pattern` — regex match.
+    RLike {
+        expr: Box<Expr>,
+        pattern: Box<Expr>,
+        negated: bool,
+    },
+    /// `left <=> right` — null-safe equality.
+    NullSafeEq {
+        left: Box<Expr>,
+        right: Box<Expr>,
+    },
+    /// `left || right` — string concatenation.
+    Concat {
+        left: Box<Expr>,
+        right: Box<Expr>,
+    },
+    /// `TRY_CAST(expr AS type)`.
+    TryCast {
+        expr: Box<Expr>,
+        data_type: String,
+    },
+    /// `func() OVER (PARTITION BY ... ORDER BY ... frame)`.
+    WindowExpr {
+        function: Box<Expr>,
+        partition_by: Vec<Expr>,
+        order_by: Vec<(Expr, SortDirection, NullOrdering)>,
+        frame: Option<WindowFrame>,
+    },
+    /// Lambda expression: `x -> expr` or `(x, y) -> expr`.
+    Lambda {
+        params: Vec<String>,
+        body: Box<Expr>,
+    },
+    /// Named argument in function call: `key => value`.
+    NamedArg {
+        name: String,
+        value: Box<Expr>,
+    },
+    /// Nested field access: `expr.field`.
+    FieldAccess {
+        expr: Box<Expr>,
+        field: String,
+    },
+    /// Subscript access: `expr[key]`.
+    Subscript {
+        expr: Box<Expr>,
+        key: Box<Expr>,
+    },
+    /// Qualified star: `table.*`.
+    QualifiedWildcard {
+        qualifier: String,
+    },
+    /// Typed literal: `DATE '2025-01-01'`, `TIMESTAMP '...'`, etc.
+    TypedLiteral {
+        type_name: String,
+        value: String,
+    },
+    /// Complex literal: `ARRAY(...)`, `MAP(...)`, `STRUCT(...)`, `NAMED_STRUCT(...)`.
+    ComplexLiteral {
+        constructor: String,
+        args: Vec<Expr>,
+    },
 }
 
 /// Binary operators.
@@ -80,6 +162,10 @@ pub enum BinaryOp {
     // Logical
     And,
     Or,
+    /// String concatenation `||`
+    StringConcat,
+    /// Null-safe equality `<=>`
+    NullSafeEq,
 }
 
 /// Unary operators.
@@ -115,6 +201,8 @@ impl std::fmt::Display for BinaryOp {
             Self::GtEq => ">=",
             Self::And => "AND",
             Self::Or => "OR",
+            Self::StringConcat => "||",
+            Self::NullSafeEq => "<=>",
         };
         write!(f, "{s}")
     }

@@ -10,12 +10,15 @@ use teckel_model::{TeckelError, TeckelErrorCode};
 static ASSET_REF_PATTERN: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^[a-zA-Z][a-zA-Z0-9_-]{0,127}$").unwrap());
 
-/// V-008: Check that the version field is present and equals "2.0".
+/// V-008: Check that the version field is present and is a supported version.
 pub fn check_version(doc: &yaml::Document) -> Result<(), TeckelError> {
-    if doc.version != "2.0" {
+    if doc.version != "2.0" && doc.version != "3.0" {
         return Err(TeckelError::spec(
             TeckelErrorCode::EVersion001,
-            format!("unsupported version \"{}\", expected \"2.0\"", doc.version),
+            format!(
+                "unsupported version \"{}\", expected \"2.0\" or \"3.0\"",
+                doc.version
+            ),
         ));
     }
     Ok(())
@@ -255,6 +258,45 @@ fn collect_expressions(source: &teckel_model::source::Source) -> Vec<&str> {
         Source::Scd2(_) | Source::Enrich(_) | Source::SchemaEnforce(_) => vec![],
         Source::Assertion(t) => t.checks.iter().map(|c| c.rule.as_str()).collect(),
         Source::Repartition(_) | Source::Coalesce(_) | Source::Custom(_) => vec![],
+        // v3 transformations
+        Source::Offset(_) | Source::Tail(_) => vec![],
+        Source::FillNa(_) | Source::DropNa(_) | Source::Replace(_) => vec![],
+        Source::Merge(t) => {
+            let mut exprs: Vec<&str> = t.on.iter().map(|s| s.as_str()).collect();
+            for action in t
+                .when_matched
+                .iter()
+                .chain(t.when_not_matched.iter())
+                .chain(t.when_not_matched_by_source.iter())
+            {
+                if let Some(cond) = &action.condition {
+                    exprs.push(cond.as_str());
+                }
+                if let Some(set) = &action.set {
+                    for v in set.values() {
+                        exprs.push(v.as_str());
+                    }
+                }
+            }
+            exprs
+        }
+        Source::Parse(_) => vec![],
+        Source::AsOfJoin(t) => {
+            let mut exprs: Vec<&str> = t.on.iter().map(|s| s.as_str()).collect();
+            if let Some(tol) = &t.tolerance {
+                exprs.push(tol.as_str());
+            }
+            exprs
+        }
+        Source::LateralJoin(t) => t.on.iter().map(|s| s.as_str()).collect(),
+        Source::Transpose(_) => vec![],
+        Source::GroupingSets(t) => t.agg.iter().map(|s| s.as_str()).collect(),
+        Source::Describe(_) | Source::Crosstab(_) => vec![],
+        Source::Hint(t) => t
+            .hints
+            .iter()
+            .flat_map(|h| h.parameters.iter().map(|s| s.as_str()))
+            .collect(),
     }
 }
 
@@ -284,6 +326,7 @@ mod tests {
 
     #[test]
     fn validates_version() {
+        // "1.0" should fail
         let doc = yaml::Document {
             version: "1.0".to_string(),
             pipeline: None,

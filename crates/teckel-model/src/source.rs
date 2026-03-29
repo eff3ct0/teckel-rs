@@ -42,6 +42,22 @@ pub enum Source {
     Repartition(RepartitionTransform),
     Coalesce(CoalesceTransform),
     Custom(CustomTransform),
+
+    // ── v3 transformations (8.32 - 8.45) ─────────────────────
+    Offset(OffsetTransform),
+    Tail(TailTransform),
+    FillNa(FillNaTransform),
+    DropNa(DropNaTransform),
+    Replace(ReplaceTransform),
+    Merge(MergeTransform),
+    Parse(ParseTransform),
+    AsOfJoin(AsOfJoinTransform),
+    LateralJoin(LateralJoinTransform),
+    Transpose(TransposeTransform),
+    GroupingSets(GroupingSetsTransform),
+    Describe(DescribeTransform),
+    Crosstab(CrosstabTransform),
+    Hint(HintTransform),
 }
 
 impl Source {
@@ -87,6 +103,20 @@ impl Source {
             Source::Repartition(t) => vec![&t.from],
             Source::Coalesce(t) => vec![&t.from],
             Source::Custom(t) => vec![&t.from],
+            Source::Offset(t) => vec![&t.from],
+            Source::Tail(t) => vec![&t.from],
+            Source::FillNa(t) => vec![&t.from],
+            Source::DropNa(t) => vec![&t.from],
+            Source::Replace(t) => vec![&t.from],
+            Source::Merge(t) => vec![&t.target, &t.source],
+            Source::Parse(t) => vec![&t.from],
+            Source::AsOfJoin(t) => vec![&t.left, &t.right],
+            Source::LateralJoin(t) => vec![&t.left, &t.right],
+            Source::Transpose(t) => vec![&t.from],
+            Source::GroupingSets(t) => vec![&t.from],
+            Source::Describe(t) => vec![&t.from],
+            Source::Crosstab(t) => vec![&t.from],
+            Source::Hint(t) => vec![&t.from],
         }
     }
 }
@@ -153,12 +183,16 @@ pub struct JoinTarget {
 pub struct UnionTransform {
     pub sources: Vec<AssetRef>,
     pub all: bool,
+    pub by_name: bool,
+    pub allow_missing_columns: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct IntersectTransform {
     pub sources: Vec<AssetRef>,
     pub all: bool,
+    pub by_name: bool,
+    pub allow_missing_columns: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -166,6 +200,8 @@ pub struct ExceptTransform {
     pub left: AssetRef,
     pub right: AssetRef,
     pub all: bool,
+    pub by_name: bool,
+    pub allow_missing_columns: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -281,6 +317,9 @@ pub struct SampleTransform {
     pub fraction: f64,
     pub with_replacement: bool,
     pub seed: Option<i64>,
+    pub lower_bound: Option<f64>,
+    pub upper_bound: Option<f64>,
+    pub deterministic_order: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -396,4 +435,134 @@ pub struct CustomTransform {
     pub from: AssetRef,
     pub component: String,
     pub options: BTreeMap<String, String>,
+}
+
+// ── v3 transformation types ──────────────────────────────────
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct OffsetTransform {
+    pub from: AssetRef,
+    pub count: u64,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct TailTransform {
+    pub from: AssetRef,
+    pub count: u64,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct FillNaTransform {
+    pub from: AssetRef,
+    pub columns: Option<Vec<Column>>,
+    pub value: Option<Primitive>,
+    pub values: Option<BTreeMap<Column, Primitive>>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct DropNaTransform {
+    pub from: AssetRef,
+    pub columns: Option<Vec<Column>>,
+    pub how: DropNaHow,
+    pub min_non_nulls: Option<u32>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Replacement {
+    pub old: Primitive,
+    pub new: Primitive,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ReplaceTransform {
+    pub from: AssetRef,
+    pub columns: Option<Vec<Column>>,
+    pub mappings: Vec<Replacement>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct MergeAction {
+    pub action: MergeActionType,
+    pub condition: Option<Condition>,
+    pub set: Option<BTreeMap<Column, Expression>>,
+    pub star: bool,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct MergeTransform {
+    pub target: AssetRef,
+    pub source: AssetRef,
+    pub on: Vec<Condition>,
+    pub when_matched: Vec<MergeAction>,
+    pub when_not_matched: Vec<MergeAction>,
+    pub when_not_matched_by_source: Vec<MergeAction>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ParseTransform {
+    pub from: AssetRef,
+    pub column: Column,
+    pub format: ParseFormat,
+    pub schema: Option<Vec<SchemaColumn>>,
+    pub options: Options,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct AsOfJoinTransform {
+    pub left: AssetRef,
+    pub right: AssetRef,
+    pub left_as_of: Column,
+    pub right_as_of: Column,
+    pub on: Vec<Condition>,
+    pub join_type: JoinType,
+    pub direction: AsOfDirection,
+    pub tolerance: Option<Expression>,
+    pub allow_exact_matches: bool,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct LateralJoinTransform {
+    pub left: AssetRef,
+    pub right: AssetRef,
+    pub join_type: JoinType,
+    pub on: Vec<Condition>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct TransposeTransform {
+    pub from: AssetRef,
+    pub index_columns: Vec<Column>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct GroupingSetsTransform {
+    pub from: AssetRef,
+    pub sets: Vec<Vec<Column>>,
+    pub agg: Vec<Expression>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct DescribeTransform {
+    pub from: AssetRef,
+    pub columns: Option<Vec<Column>>,
+    pub statistics: Option<Vec<String>>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct CrosstabTransform {
+    pub from: AssetRef,
+    pub col1: Column,
+    pub col2: Column,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct HintSpec {
+    pub name: String,
+    pub parameters: Vec<Expression>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct HintTransform {
+    pub from: AssetRef,
+    pub hints: Vec<HintSpec>,
 }
