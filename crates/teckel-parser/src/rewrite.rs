@@ -190,15 +190,21 @@ fn rewrite_transformation(t: &yaml::RawTransformation) -> Result<Source, TeckelE
         TransformationOp::Union(op) => Ok(Source::Union(UnionTransform {
             sources: op.sources.clone(),
             all: op.all,
+            by_name: op.by_name,
+            allow_missing_columns: op.allow_missing_columns,
         })),
         TransformationOp::Intersect(op) => Ok(Source::Intersect(IntersectTransform {
             sources: op.sources.clone(),
             all: op.all,
+            by_name: op.by_name,
+            allow_missing_columns: op.allow_missing_columns,
         })),
         TransformationOp::Except(op) => Ok(Source::Except(ExceptTransform {
             left: op.left.clone(),
             right: op.right.clone(),
             all: op.all,
+            by_name: op.by_name,
+            allow_missing_columns: op.allow_missing_columns,
         })),
         TransformationOp::Distinct(op) => Ok(Source::Distinct(DistinctTransform {
             from: op.from.clone(),
@@ -292,6 +298,9 @@ fn rewrite_transformation(t: &yaml::RawTransformation) -> Result<Source, TeckelE
             fraction: op.fraction,
             with_replacement: op.with_replacement,
             seed: op.seed,
+            lower_bound: op.lower_bound,
+            upper_bound: op.upper_bound,
+            deterministic_order: op.deterministic_order,
         })),
         TransformationOp::Conditional(op) => Ok(Source::Conditional(ConditionalTransform {
             from: op.from.clone(),
@@ -398,7 +407,167 @@ fn rewrite_transformation(t: &yaml::RawTransformation) -> Result<Source, TeckelE
             component: op.component.clone(),
             options: op.options.clone(),
         })),
+        // ── v3 transformations ───────────────────────────────────
+        TransformationOp::Offset(op) => Ok(Source::Offset(OffsetTransform {
+            from: op.from.clone(),
+            count: op.count,
+        })),
+        TransformationOp::Tail(op) => Ok(Source::Tail(TailTransform {
+            from: op.from.clone(),
+            count: op.count,
+        })),
+        TransformationOp::FillNa(op) => Ok(Source::FillNa(FillNaTransform {
+            from: op.from.clone(),
+            columns: op.columns.clone(),
+            value: op.value.clone(),
+            values: op.values.clone(),
+        })),
+        TransformationOp::DropNa(op) => Ok(Source::DropNa(DropNaTransform {
+            from: op.from.clone(),
+            columns: op.columns.clone(),
+            how: match op.how.as_deref() {
+                Some("all") => DropNaHow::All,
+                _ => DropNaHow::Any,
+            },
+            min_non_nulls: op.min_non_nulls,
+        })),
+        TransformationOp::Replace(op) => Ok(Source::Replace(ReplaceTransform {
+            from: op.from.clone(),
+            columns: op.columns.clone(),
+            mappings: op
+                .mappings
+                .iter()
+                .map(|m| Replacement {
+                    old: m.old.clone(),
+                    new: m.new.clone(),
+                })
+                .collect(),
+        })),
+        TransformationOp::Merge(op) => Ok(Source::Merge(MergeTransform {
+            target: op.target.clone(),
+            source: op.source.clone(),
+            on: op.on.clone(),
+            when_matched: op
+                .when_matched
+                .iter()
+                .map(|a| rewrite_merge_action(a))
+                .collect::<Result<Vec<_>, _>>()?,
+            when_not_matched: op
+                .when_not_matched
+                .iter()
+                .map(|a| rewrite_merge_action(a))
+                .collect::<Result<Vec<_>, _>>()?,
+            when_not_matched_by_source: op
+                .when_not_matched_by_source
+                .iter()
+                .map(|a| rewrite_merge_action(a))
+                .collect::<Result<Vec<_>, _>>()?,
+        })),
+        TransformationOp::Parse(op) => Ok(Source::Parse(ParseTransform {
+            from: op.from.clone(),
+            column: op.column.clone(),
+            format: match op.format.as_str() {
+                "csv" => ParseFormat::Csv,
+                _ => ParseFormat::Json,
+            },
+            schema: op.schema.as_ref().map(|cols| {
+                cols.iter()
+                    .map(|c| SchemaColumn {
+                        name: c.name.clone(),
+                        data_type: c.data_type.clone(),
+                        nullable: c.nullable,
+                        default: c.default.clone(),
+                    })
+                    .collect()
+            }),
+            options: op
+                .options
+                .iter()
+                .map(|(k, v)| (k.clone(), Primitive::String(v.clone())))
+                .collect(),
+        })),
+        TransformationOp::AsOfJoin(op) => Ok(Source::AsOfJoin(AsOfJoinTransform {
+            left: op.left.clone(),
+            right: op.right.clone(),
+            left_as_of: op.left_as_of.clone(),
+            right_as_of: op.right_as_of.clone(),
+            on: op.on.clone(),
+            join_type: parse_join_type(
+                op.join_type.as_deref().unwrap_or("left"),
+            )?,
+            direction: match op.direction.as_deref() {
+                Some("forward") => AsOfDirection::Forward,
+                Some("nearest") => AsOfDirection::Nearest,
+                _ => AsOfDirection::Backward,
+            },
+            tolerance: op.tolerance.clone(),
+            allow_exact_matches: op.allow_exact_matches,
+        })),
+        TransformationOp::LateralJoin(op) => Ok(Source::LateralJoin(LateralJoinTransform {
+            left: op.left.clone(),
+            right: op.right.clone(),
+            join_type: parse_join_type(
+                op.join_type.as_deref().unwrap_or("inner"),
+            )?,
+            on: op.on.clone(),
+        })),
+        TransformationOp::Transpose(op) => Ok(Source::Transpose(TransposeTransform {
+            from: op.from.clone(),
+            index_columns: op.index_columns.clone(),
+        })),
+        TransformationOp::GroupingSets(op) => {
+            Ok(Source::GroupingSets(GroupingSetsTransform {
+                from: op.from.clone(),
+                sets: op.sets.clone(),
+                agg: op.agg.clone(),
+            }))
+        }
+        TransformationOp::Describe(op) => Ok(Source::Describe(DescribeTransform {
+            from: op.from.clone(),
+            columns: op.columns.clone(),
+            statistics: op.statistics.clone(),
+        })),
+        TransformationOp::Crosstab(op) => Ok(Source::Crosstab(CrosstabTransform {
+            from: op.from.clone(),
+            col1: op.col1.clone(),
+            col2: op.col2.clone(),
+        })),
+        TransformationOp::Hint(op) => Ok(Source::Hint(HintTransform {
+            from: op.from.clone(),
+            hints: op
+                .hints
+                .iter()
+                .map(|h| HintSpec {
+                    name: h.name.clone(),
+                    parameters: h.parameters.clone(),
+                })
+                .collect(),
+        })),
     }
+}
+
+fn rewrite_merge_action(
+    a: &crate::yaml::operations::MergeActionDef,
+) -> Result<MergeAction, TeckelError> {
+    let action = match a.action.as_str() {
+        "update" => MergeActionType::Update,
+        "insert" => MergeActionType::Insert,
+        "delete" => MergeActionType::Delete,
+        other => {
+            return Err(TeckelError::spec(
+                TeckelErrorCode::EEnum001,
+                format!(
+                    "invalid merge action \"{other}\", expected: update|insert|delete"
+                ),
+            ))
+        }
+    };
+    Ok(MergeAction {
+        action,
+        condition: a.condition.clone(),
+        set: a.set.clone(),
+        star: a.star,
+    })
 }
 
 fn rewrite_sort_column(sc: &yaml::operations::SortColumnDef) -> SortColumn {

@@ -57,4 +57,20 @@ pub enum TransformationOp {
     Repartition(RepartitionOp),
     Coalesce(CoalesceOp),
     Custom(CustomOp),
+
+    // v3 (8.32 - 8.45)
+    Offset(OffsetOp),
+    Tail(TailOp),
+    FillNa(FillNaOp),
+    DropNa(DropNaOp),
+    Replace(ReplaceOp),
+    Merge(MergeOp),
+    Parse(ParseOp),
+    AsOfJoin(AsOfJoinOp),
+    LateralJoin(LateralJoinOp),
+    Transpose(TransposeOp),
+    GroupingSets(GroupingSetsOp),
+    Describe(DescribeOp),
+    Crosstab(CrosstabOp),
+    Hint(HintOp),
 }

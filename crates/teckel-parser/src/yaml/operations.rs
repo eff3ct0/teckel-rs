@@ -1,5 +1,6 @@
 use serde::Deserialize;
 use std::collections::BTreeMap;
+use teckel_model::types::Primitive;
 
 // ── Core operations (8.1 - 8.10) ────────────────────────────
 
@@ -67,6 +68,10 @@ pub struct UnionOp {
     pub sources: Vec<String>,
     #[serde(default = "default_true")]
     pub all: bool,
+    #[serde(rename = "byName", default)]
+    pub by_name: bool,
+    #[serde(rename = "allowMissingColumns", default)]
+    pub allow_missing_columns: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -74,6 +79,10 @@ pub struct IntersectOp {
     pub sources: Vec<String>,
     #[serde(default)]
     pub all: bool,
+    #[serde(rename = "byName", default)]
+    pub by_name: bool,
+    #[serde(rename = "allowMissingColumns", default)]
+    pub allow_missing_columns: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -82,6 +91,10 @@ pub struct ExceptOp {
     pub right: String,
     #[serde(default)]
     pub all: bool,
+    #[serde(rename = "byName", default)]
+    pub by_name: bool,
+    #[serde(rename = "allowMissingColumns", default)]
+    pub allow_missing_columns: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -214,6 +227,12 @@ pub struct SampleOp {
     #[serde(rename = "withReplacement", default)]
     pub with_replacement: bool,
     pub seed: Option<i64>,
+    #[serde(rename = "lowerBound")]
+    pub lower_bound: Option<f64>,
+    #[serde(rename = "upperBound")]
+    pub upper_bound: Option<f64>,
+    #[serde(rename = "deterministicOrder", default)]
+    pub deterministic_order: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -375,4 +394,155 @@ pub struct CustomOp {
 
 fn default_true() -> bool {
     true
+}
+
+// ── v3 operations ────────────────────────────────────────────
+
+#[derive(Debug, Deserialize)]
+pub struct OffsetOp {
+    pub from: String,
+    pub count: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TailOp {
+    pub from: String,
+    pub count: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct FillNaOp {
+    pub from: String,
+    pub columns: Option<Vec<String>>,
+    pub value: Option<Primitive>,
+    pub values: Option<BTreeMap<String, Primitive>>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DropNaOp {
+    pub from: String,
+    pub columns: Option<Vec<String>>,
+    #[serde(default)]
+    pub how: Option<String>,
+    #[serde(rename = "minNonNulls")]
+    pub min_non_nulls: Option<u32>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ReplacementDef {
+    pub old: Primitive,
+    pub new: Primitive,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ReplaceOp {
+    pub from: String,
+    pub columns: Option<Vec<String>>,
+    pub mappings: Vec<ReplacementDef>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct MergeActionDef {
+    pub action: String,
+    pub condition: Option<String>,
+    pub set: Option<BTreeMap<String, String>>,
+    #[serde(default)]
+    pub star: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct MergeOp {
+    pub target: String,
+    pub source: String,
+    pub on: Vec<String>,
+    #[serde(rename = "whenMatched", default)]
+    pub when_matched: Vec<MergeActionDef>,
+    #[serde(rename = "whenNotMatched", default)]
+    pub when_not_matched: Vec<MergeActionDef>,
+    #[serde(rename = "whenNotMatchedBySource", default)]
+    pub when_not_matched_by_source: Vec<MergeActionDef>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ParseOp {
+    pub from: String,
+    pub column: String,
+    pub format: String,
+    pub schema: Option<Vec<SchemaColumnDef>>,
+    #[serde(default)]
+    pub options: BTreeMap<String, String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct AsOfJoinOp {
+    pub left: String,
+    pub right: String,
+    #[serde(rename = "leftAsOf")]
+    pub left_as_of: String,
+    #[serde(rename = "rightAsOf")]
+    pub right_as_of: String,
+    #[serde(default)]
+    pub on: Vec<String>,
+    #[serde(rename = "type", default = "default_left")]
+    pub join_type: Option<String>,
+    #[serde(default)]
+    pub direction: Option<String>,
+    pub tolerance: Option<String>,
+    #[serde(rename = "allowExactMatches", default = "default_true")]
+    pub allow_exact_matches: bool,
+}
+
+fn default_left() -> Option<String> {
+    Some("left".to_string())
+}
+
+#[derive(Debug, Deserialize)]
+pub struct LateralJoinOp {
+    pub left: String,
+    pub right: String,
+    #[serde(rename = "type", default)]
+    pub join_type: Option<String>,
+    #[serde(default)]
+    pub on: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TransposeOp {
+    pub from: String,
+    #[serde(rename = "indexColumns", default)]
+    pub index_columns: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GroupingSetsOp {
+    pub from: String,
+    pub sets: Vec<Vec<String>>,
+    pub agg: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DescribeOp {
+    pub from: String,
+    pub columns: Option<Vec<String>>,
+    pub statistics: Option<Vec<String>>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CrosstabOp {
+    pub from: String,
+    pub col1: String,
+    pub col2: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct HintSpecDef {
+    pub name: String,
+    #[serde(default)]
+    pub parameters: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct HintOp {
+    pub from: String,
+    pub hints: Vec<HintSpecDef>,
 }

@@ -8,10 +8,10 @@ use serde::Deserialize;
 use std::collections::BTreeMap;
 use teckel_model::types::Primitive;
 
-/// Top-level Teckel v2.0 document (Section 4).
+/// Top-level Teckel document (Section 4).
 #[derive(Debug, Deserialize)]
 pub struct Document {
-    /// Teckel specification version. MUST be "2.0".
+    /// Teckel specification version. MUST be "2.0" or "3.0".
     pub version: String,
 
     /// Pipeline-level metadata.

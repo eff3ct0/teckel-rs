@@ -139,6 +139,7 @@ pub enum TeckelDataType {
     String,
     #[serde(alias = "int")]
     Integer,
+    #[serde(alias = "bigint")]
     Long,
     Float,
     Double,
@@ -153,6 +154,17 @@ pub enum TeckelDataType {
     Array(Box<TeckelDataType>),
     Map(Box<TeckelDataType>, Box<TeckelDataType>),
     Struct(Vec<StructField>),
+    #[serde(alias = "tinyint")]
+    Byte,
+    #[serde(alias = "smallint")]
+    Short,
+    Char(u32),
+    VarChar(u32),
+    TimestampNtz,
+    Time(Option<u8>),
+    YearMonthInterval,
+    DayTimeInterval,
+    Variant,
 }
 
 /// A field within a struct data type.
@@ -189,4 +201,40 @@ impl SortColumn {
             SortColumn::Explicit { column, .. } => column,
         }
     }
+}
+
+/// As-of join direction.
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum AsOfDirection {
+    #[default]
+    Backward,
+    Forward,
+    Nearest,
+}
+
+/// Merge action type.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum MergeActionType {
+    Update,
+    Insert,
+    Delete,
+}
+
+/// Parse format for structured column parsing.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ParseFormat {
+    Json,
+    Csv,
+}
+
+/// Drop NA mode.
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum DropNaHow {
+    #[default]
+    Any,
+    All,
 }
