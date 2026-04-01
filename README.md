@@ -1,6 +1,6 @@
 # teckel-rs
 
-Rust implementation of the [Teckel Specification v2.0](https://github.com/eff3ct0/teckel-spec) -- a declarative YAML-based language for defining data transformation pipelines.
+Rust implementation of the [Teckel Specification v3.0](https://github.com/eff3ct0/teckel-spec) -- a declarative YAML-based language for defining data transformation pipelines.
 
 This crate provides the **parser and model layer**: YAML parsing, variable/secret resolution, validation, and conversion to a typed domain model. The execution backend is implemented in a separate repository.
 
@@ -8,7 +8,7 @@ This crate provides the **parser and model layer**: YAML parsing, variable/secre
 
 | Crate | Description |
 |-------|-------------|
-| `teckel-model` | Core domain types: assets, sources, 31 transformation types, error catalog, quality, metadata |
+| `teckel-model` | Core domain types: assets, sources, 45 transformation types, error catalog, quality, metadata |
 | `teckel-parser` | YAML deserialization, variable substitution, secret resolution, config merging, validation (V-001..V-008), rewrite to domain model |
 
 ## Quick Start
@@ -43,10 +43,10 @@ let context = parse(yaml, &BTreeMap::new()).unwrap();
 
 ## Conformance
 
-This parser supports parsing all constructs defined in the Teckel v2.0 specification:
+This parser supports parsing all constructs defined in the Teckel v3.0 specification:
 
 - **Core** (Sections 1-12): Document structure, inputs, outputs, 10 basic transformations, expression language (as raw strings), data types, null semantics, variable substitution, path resolution, validation rules, execution model, error catalog
-- **Extended** (Sections 8.11-8.31, 13-21): All 31 transformations, secrets, configuration, hooks, data quality, metadata, exposures, templates, config merging
+- **Extended** (Sections 8.11-8.31, 13-21): All 45 transformations, secrets, configuration, hooks, data quality, metadata, exposures, templates, config merging
 
 ## Build
 

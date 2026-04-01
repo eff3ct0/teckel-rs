@@ -51,9 +51,7 @@ impl<'a> Parser<'a> {
     }
 
     fn skip_ws(&mut self) {
-        while self.pos < self.input.len()
-            && self.input.as_bytes()[self.pos].is_ascii_whitespace()
-        {
+        while self.pos < self.input.len() && self.input.as_bytes()[self.pos].is_ascii_whitespace() {
             self.pos += 1;
         }
     }
@@ -65,7 +63,10 @@ impl<'a> Parser<'a> {
                 self.advance(c.len_utf8());
                 Ok(())
             }
-            Some(ch) => Err(format!("expected '{c}', found '{ch}' at position {}", self.pos)),
+            Some(ch) => Err(format!(
+                "expected '{c}', found '{ch}' at position {}",
+                self.pos
+            )),
             None => Err(format!("expected '{c}', found end of input")),
         }
     }
@@ -380,7 +381,10 @@ impl<'a> Parser<'a> {
                 self.advance(1);
                 Ok(Expr::Wildcard)
             }
-            Some(c) => Err(format!("unexpected character '{c}' at position {}", self.pos)),
+            Some(c) => Err(format!(
+                "unexpected character '{c}' at position {}",
+                self.pos
+            )),
         }
     }
 
@@ -505,7 +509,10 @@ impl<'a> Parser<'a> {
         if self.peek_char() == Some('.') {
             self.advance(1);
             if !self.peek_char().is_some_and(|c| c.is_ascii_digit()) {
-                return Err(format!("expected digit after decimal point at position {}", self.pos));
+                return Err(format!(
+                    "expected digit after decimal point at position {}",
+                    self.pos
+                ));
             }
             while self.peek_char().is_some_and(|c| c.is_ascii_digit()) {
                 self.advance(1);
@@ -663,7 +670,10 @@ impl<'a> Parser<'a> {
             Some(c) if c.is_ascii_alphabetic() || c == '_' => self.advance(1),
             _ => return Err(format!("expected identifier at position {}", self.pos)),
         }
-        while self.peek_char().is_some_and(|c| c.is_ascii_alphanumeric() || c == '_') {
+        while self
+            .peek_char()
+            .is_some_and(|c| c.is_ascii_alphanumeric() || c == '_')
+        {
             self.advance(1);
         }
         Ok(self.input[start..self.pos].to_string())
@@ -699,7 +709,10 @@ mod tests {
     fn simple_column() {
         assert_eq!(
             parse("name"),
-            Expr::ColumnRef { table: None, column: "name".into() }
+            Expr::ColumnRef {
+                table: None,
+                column: "name".into()
+            }
         );
     }
 
@@ -707,7 +720,10 @@ mod tests {
     fn qualified_column() {
         assert_eq!(
             parse("employees.name"),
-            Expr::ColumnRef { table: Some("employees".into()), column: "name".into() }
+            Expr::ColumnRef {
+                table: Some("employees".into()),
+                column: "name".into()
+            }
         );
     }
 
@@ -718,17 +734,23 @@ mod tests {
 
     #[test]
     fn float_literal() {
-        assert_eq!(parse("3.14"), Expr::Literal(Literal::Float(3.14)));
+        assert_eq!(parse("3.15"), Expr::Literal(Literal::Float(3.15)));
     }
 
     #[test]
     fn string_literal_simple() {
-        assert_eq!(parse("'hello'"), Expr::Literal(Literal::String("hello".into())));
+        assert_eq!(
+            parse("'hello'"),
+            Expr::Literal(Literal::String("hello".into()))
+        );
     }
 
     #[test]
     fn string_literal_escaped_quote() {
-        assert_eq!(parse("'it''s'"), Expr::Literal(Literal::String("it's".into())));
+        assert_eq!(
+            parse("'it''s'"),
+            Expr::Literal(Literal::String("it's".into()))
+        );
     }
 
     #[test]
@@ -746,15 +768,31 @@ mod tests {
     #[test]
     fn arithmetic() {
         let expr = parse("salary * 1.1");
-        assert!(matches!(expr, Expr::BinaryOp { op: BinaryOp::Mul, .. }));
+        assert!(matches!(
+            expr,
+            Expr::BinaryOp {
+                op: BinaryOp::Mul,
+                ..
+            }
+        ));
     }
 
     #[test]
     fn arithmetic_precedence() {
         let expr = parse("a + b * c");
         match expr {
-            Expr::BinaryOp { op: BinaryOp::Add, right, .. } => {
-                assert!(matches!(*right, Expr::BinaryOp { op: BinaryOp::Mul, .. }));
+            Expr::BinaryOp {
+                op: BinaryOp::Add,
+                right,
+                ..
+            } => {
+                assert!(matches!(
+                    *right,
+                    Expr::BinaryOp {
+                        op: BinaryOp::Mul,
+                        ..
+                    }
+                ));
             }
             other => panic!("expected Add(_, Mul(_, _)), got {other:?}"),
         }
@@ -763,26 +801,50 @@ mod tests {
     #[test]
     fn comparison_eq() {
         let expr = parse("status = 'active'");
-        assert!(matches!(expr, Expr::BinaryOp { op: BinaryOp::Eq, .. }));
+        assert!(matches!(
+            expr,
+            Expr::BinaryOp {
+                op: BinaryOp::Eq,
+                ..
+            }
+        ));
     }
 
     #[test]
     fn comparison_double_eq() {
         let expr = parse("x == 1");
-        assert!(matches!(expr, Expr::BinaryOp { op: BinaryOp::Eq, .. }));
+        assert!(matches!(
+            expr,
+            Expr::BinaryOp {
+                op: BinaryOp::Eq,
+                ..
+            }
+        ));
     }
 
     #[test]
     fn and_or_precedence() {
         // (a=1 AND b=2) OR c=3
         let expr = parse("a = 1 AND b = 2 OR c = 3");
-        assert!(matches!(expr, Expr::BinaryOp { op: BinaryOp::Or, .. }));
+        assert!(matches!(
+            expr,
+            Expr::BinaryOp {
+                op: BinaryOp::Or,
+                ..
+            }
+        ));
     }
 
     #[test]
     fn not_expression() {
         let expr = parse("NOT active");
-        assert!(matches!(expr, Expr::UnaryOp { op: UnaryOp::Not, .. }));
+        assert!(matches!(
+            expr,
+            Expr::UnaryOp {
+                op: UnaryOp::Not,
+                ..
+            }
+        ));
     }
 
     #[test]
@@ -830,7 +892,11 @@ mod tests {
     #[test]
     fn function_call() {
         match parse("upper(name)") {
-            Expr::FunctionCall { name, args, distinct } => {
+            Expr::FunctionCall {
+                name,
+                args,
+                distinct,
+            } => {
                 assert_eq!(name, "upper");
                 assert_eq!(args.len(), 1);
                 assert!(!distinct);
@@ -875,7 +941,10 @@ mod tests {
     #[test]
     fn case_expression() {
         match parse("CASE WHEN amount > 1000 THEN 'high' ELSE 'low' END") {
-            Expr::Case { when_clauses, else_clause } => {
+            Expr::Case {
+                when_clauses,
+                else_clause,
+            } => {
                 assert_eq!(when_clauses.len(), 1);
                 assert!(else_clause.is_some());
             }
@@ -885,7 +954,9 @@ mod tests {
 
     #[test]
     fn case_multi_when() {
-        match parse("CASE WHEN amount > 1000 THEN 'high' WHEN amount > 100 THEN 'medium' ELSE 'low' END") {
+        match parse(
+            "CASE WHEN amount > 1000 THEN 'high' WHEN amount > 100 THEN 'medium' ELSE 'low' END",
+        ) {
             Expr::Case { when_clauses, .. } => assert_eq!(when_clauses.len(), 2),
             other => panic!("expected Case, got {other:?}"),
         }
@@ -921,14 +992,23 @@ mod tests {
     #[test]
     fn complex_filter() {
         let expr = parse("status = 'active' AND created_at >= '2025-01-01'");
-        assert!(matches!(expr, Expr::BinaryOp { op: BinaryOp::And, .. }));
+        assert!(matches!(
+            expr,
+            Expr::BinaryOp {
+                op: BinaryOp::And,
+                ..
+            }
+        ));
     }
 
     #[test]
     fn backtick_identifier() {
         assert_eq!(
             parse("`my column`"),
-            Expr::ColumnRef { table: None, column: "my column".into() }
+            Expr::ColumnRef {
+                table: None,
+                column: "my column".into()
+            }
         );
     }
 
@@ -945,12 +1025,24 @@ mod tests {
 
     #[test]
     fn negation() {
-        assert!(matches!(parse("-amount"), Expr::UnaryOp { op: UnaryOp::Neg, .. }));
+        assert!(matches!(
+            parse("-amount"),
+            Expr::UnaryOp {
+                op: UnaryOp::Neg,
+                ..
+            }
+        ));
     }
 
     #[test]
     fn parenthesized() {
-        assert!(matches!(parse("(a + b) * c"), Expr::BinaryOp { op: BinaryOp::Mul, .. }));
+        assert!(matches!(
+            parse("(a + b) * c"),
+            Expr::BinaryOp {
+                op: BinaryOp::Mul,
+                ..
+            }
+        ));
     }
 
     #[test]
@@ -967,7 +1059,11 @@ mod tests {
     #[test]
     fn join_condition_qualified() {
         match parse("employees.dept_id = departments.id") {
-            Expr::BinaryOp { left, op: BinaryOp::Eq, right } => {
+            Expr::BinaryOp {
+                left,
+                op: BinaryOp::Eq,
+                right,
+            } => {
                 assert!(matches!(*left, Expr::ColumnRef { table: Some(_), .. }));
                 assert!(matches!(*right, Expr::ColumnRef { table: Some(_), .. }));
             }
@@ -996,7 +1092,13 @@ mod tests {
     fn not_a_and_b_or_c() {
         // Per spec §9.2: NOT a AND b OR c → ((NOT a) AND b) OR c
         let expr = parse("NOT a AND b OR c");
-        assert!(matches!(expr, Expr::BinaryOp { op: BinaryOp::Or, .. }));
+        assert!(matches!(
+            expr,
+            Expr::BinaryOp {
+                op: BinaryOp::Or,
+                ..
+            }
+        ));
     }
 
     #[test]

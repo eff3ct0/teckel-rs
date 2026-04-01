@@ -50,10 +50,7 @@ pub enum Expr {
         else_clause: Option<Box<Expr>>,
     },
     /// A CAST expression: `CAST(expr AS type)`.
-    Cast {
-        expr: Box<Expr>,
-        data_type: String,
-    },
+    Cast { expr: Box<Expr>, data_type: String },
     /// `expr IS [NOT] NULL`.
     IsNull { expr: Box<Expr>, negated: bool },
     /// `expr [NOT] IN (list...)`.
@@ -86,20 +83,11 @@ pub enum Expr {
         negated: bool,
     },
     /// `left <=> right` — null-safe equality.
-    NullSafeEq {
-        left: Box<Expr>,
-        right: Box<Expr>,
-    },
+    NullSafeEq { left: Box<Expr>, right: Box<Expr> },
     /// `left || right` — string concatenation.
-    Concat {
-        left: Box<Expr>,
-        right: Box<Expr>,
-    },
+    Concat { left: Box<Expr>, right: Box<Expr> },
     /// `TRY_CAST(expr AS type)`.
-    TryCast {
-        expr: Box<Expr>,
-        data_type: String,
-    },
+    TryCast { expr: Box<Expr>, data_type: String },
     /// `func() OVER (PARTITION BY ... ORDER BY ... frame)`.
     WindowExpr {
         function: Box<Expr>,
@@ -113,29 +101,15 @@ pub enum Expr {
         body: Box<Expr>,
     },
     /// Named argument in function call: `key => value`.
-    NamedArg {
-        name: String,
-        value: Box<Expr>,
-    },
+    NamedArg { name: String, value: Box<Expr> },
     /// Nested field access: `expr.field`.
-    FieldAccess {
-        expr: Box<Expr>,
-        field: String,
-    },
+    FieldAccess { expr: Box<Expr>, field: String },
     /// Subscript access: `expr[key]`.
-    Subscript {
-        expr: Box<Expr>,
-        key: Box<Expr>,
-    },
+    Subscript { expr: Box<Expr>, key: Box<Expr> },
     /// Qualified star: `table.*`.
-    QualifiedWildcard {
-        qualifier: String,
-    },
+    QualifiedWildcard { qualifier: String },
     /// Typed literal: `DATE '2025-01-01'`, `TIMESTAMP '...'`, etc.
-    TypedLiteral {
-        type_name: String,
-        value: String,
-    },
+    TypedLiteral { type_name: String, value: String },
     /// Complex literal: `ARRAY(...)`, `MAP(...)`, `STRUCT(...)`, `NAMED_STRUCT(...)`.
     ComplexLiteral {
         constructor: String,

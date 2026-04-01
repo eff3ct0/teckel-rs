@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**teckel-rs** is the Rust parser and model for the [Teckel Specification v2.0](https://github.com/eff3ct0/teckel-spec). It parses YAML pipeline definitions into a typed domain model. The execution backend lives in a separate repository.
+**teckel-rs** is the Rust parser and model for the [Teckel Specification v3.0](https://github.com/eff3ct0/teckel-spec). It parses YAML pipeline definitions into a typed domain model. The execution backend lives in a separate repository.
 
 ## Build & Test
 
@@ -24,7 +24,7 @@ teckel-model   →   teckel-parser
 
 Pure domain types with no heavy dependencies (only `serde`, `serde_yaml`, `thiserror`).
 
-- `source.rs`: `Source` enum with `Input`, `Output`, and all 31 transformation variants
+- `source.rs`: `Source` enum with `Input`, `Output`, and all 45 transformation variants
 - `asset.rs`: `Asset` wraps an `AssetRef` + `Source`. `Context = BTreeMap<AssetRef, Asset>`
 - `types.rs`: Newtypes (`AssetRef`, `Column`, `Expression`, `Condition`), enums (`Format`, `WriteMode`, `JoinType`, `SortColumn`, `TeckelDataType`)
 - `error.rs`: `TeckelError` and `TeckelErrorCode` covering all ~30 spec error codes
@@ -46,5 +46,5 @@ Entry point: `teckel_parser::parse(yaml, variables) -> Result<Context, TeckelErr
 
 ## Spec Reference
 
-- [Teckel Spec v2.0](https://github.com/eff3ct0/teckel-spec/blob/main/spec/v2.0/teckel-spec.md)
-- [JSON Schema v2.0](https://github.com/eff3ct0/teckel-spec/blob/main/spec/v2.0/teckel-schema.json)
+- [Teckel Spec v3.0](https://github.com/eff3ct0/teckel-spec/blob/main/spec/v3.0/teckel-spec.md)
+- [JSON Schema v3.0](https://github.com/eff3ct0/teckel-spec/blob/main/spec/v3.0/teckel-schema.json)

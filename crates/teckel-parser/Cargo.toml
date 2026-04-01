@@ -1,6 +1,6 @@
 [package]
 name = "teckel-parser"
-description = "YAML parsing, expression language, resolution, and validation for Teckel v2.0"
+description = "YAML parsing, expression language, resolution, and validation for Teckel v3.0"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

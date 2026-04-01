@@ -1,6 +1,6 @@
 [package]
 name = "teckel-model"
-description = "Core domain types for the Teckel specification v2.0"
+description = "Core domain types for the Teckel specification v3.0"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

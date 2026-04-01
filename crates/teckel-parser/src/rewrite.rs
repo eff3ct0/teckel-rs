@@ -450,17 +450,17 @@ fn rewrite_transformation(t: &yaml::RawTransformation) -> Result<Source, TeckelE
             when_matched: op
                 .when_matched
                 .iter()
-                .map(|a| rewrite_merge_action(a))
+                .map(rewrite_merge_action)
                 .collect::<Result<Vec<_>, _>>()?,
             when_not_matched: op
                 .when_not_matched
                 .iter()
-                .map(|a| rewrite_merge_action(a))
+                .map(rewrite_merge_action)
                 .collect::<Result<Vec<_>, _>>()?,
             when_not_matched_by_source: op
                 .when_not_matched_by_source
                 .iter()
-                .map(|a| rewrite_merge_action(a))
+                .map(rewrite_merge_action)
                 .collect::<Result<Vec<_>, _>>()?,
         })),
         TransformationOp::Parse(op) => Ok(Source::Parse(ParseTransform {
@@ -492,9 +492,7 @@ fn rewrite_transformation(t: &yaml::RawTransformation) -> Result<Source, TeckelE
             left_as_of: op.left_as_of.clone(),
             right_as_of: op.right_as_of.clone(),
             on: op.on.clone(),
-            join_type: parse_join_type(
-                op.join_type.as_deref().unwrap_or("left"),
-            )?,
+            join_type: parse_join_type(op.join_type.as_deref().unwrap_or("left"))?,
             direction: match op.direction.as_deref() {
                 Some("forward") => AsOfDirection::Forward,
                 Some("nearest") => AsOfDirection::Nearest,
@@ -506,22 +504,18 @@ fn rewrite_transformation(t: &yaml::RawTransformation) -> Result<Source, TeckelE
         TransformationOp::LateralJoin(op) => Ok(Source::LateralJoin(LateralJoinTransform {
             left: op.left.clone(),
             right: op.right.clone(),
-            join_type: parse_join_type(
-                op.join_type.as_deref().unwrap_or("inner"),
-            )?,
+            join_type: parse_join_type(op.join_type.as_deref().unwrap_or("inner"))?,
             on: op.on.clone(),
         })),
         TransformationOp::Transpose(op) => Ok(Source::Transpose(TransposeTransform {
             from: op.from.clone(),
             index_columns: op.index_columns.clone(),
         })),
-        TransformationOp::GroupingSets(op) => {
-            Ok(Source::GroupingSets(GroupingSetsTransform {
-                from: op.from.clone(),
-                sets: op.sets.clone(),
-                agg: op.agg.clone(),
-            }))
-        }
+        TransformationOp::GroupingSets(op) => Ok(Source::GroupingSets(GroupingSetsTransform {
+            from: op.from.clone(),
+            sets: op.sets.clone(),
+            agg: op.agg.clone(),
+        })),
         TransformationOp::Describe(op) => Ok(Source::Describe(DescribeTransform {
             from: op.from.clone(),
             columns: op.columns.clone(),
@@ -556,9 +550,7 @@ fn rewrite_merge_action(
         other => {
             return Err(TeckelError::spec(
                 TeckelErrorCode::EEnum001,
-                format!(
-                    "invalid merge action \"{other}\", expected: update|insert|delete"
-                ),
+                format!("invalid merge action \"{other}\", expected: update|insert|delete"),
             ))
         }
     };
@@ -695,7 +687,9 @@ fn rewrite_config(doc: &yaml::Document) -> PipelineConfig {
     }
 }
 
-fn rewrite_notification_target(t: &crate::yaml::document::NotificationTargetDef) -> NotificationTarget {
+fn rewrite_notification_target(
+    t: &crate::yaml::document::NotificationTargetDef,
+) -> NotificationTarget {
     NotificationTarget {
         channel: t.channel.clone(),
         url: t.url.clone(),
