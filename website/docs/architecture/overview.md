@@ -11,11 +11,6 @@ teckel-rs follows a strict two-crate architecture that separates domain types fr
 
 ## Crate dependency graph
 
-```
-teckel-model   -->   teckel-parser
-(domain types)       (YAML deser + validation)
-```
-
 `teckel-parser` depends on `teckel-model`. Nothing depends on `teckel-parser` at the library level -- it is the top-level entry point for consumers.
 
 ## teckel-model
