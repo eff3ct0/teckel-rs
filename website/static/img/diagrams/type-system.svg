@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" fill="none">
+  <style>
+    text { font-family: 'Inter', 'Geist', system-ui, sans-serif; }
+    .title { font-size: 14px; fill: #09090b; font-weight: 600; }
+    .cat { font-size: 10px; fill: #71717a; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+    .mono { font-family: 'Geist Mono', 'JetBrains Mono', monospace; font-size: 11px; fill: #52525b; }
+    .alias { font-family: 'Geist Mono', monospace; font-size: 9px; fill: #a1a1aa; }
+    .box { stroke: #e4e4e7; stroke-width: 1; rx: 6; fill: white; }
+    .box-v3 { stroke: #d4d4d8; stroke-width: 1; rx: 6; fill: #fafafa; }
+    .group { stroke: #e4e4e7; stroke-width: 1; rx: 10; fill: none; }
+    @media (prefers-color-scheme: dark) {
+      .title { fill: #fafafa; } .cat { fill: #a1a1aa; } .mono { fill: #a1a1aa; } .alias { fill: #71717a; }
+      .box { stroke: #27272a; fill: #18181b; } .box-v3 { stroke: #3f3f46; fill: #27272a; }
+      .group { stroke: #27272a; }
+    }
+  </style>
+
+  <text x="360" y="25" text-anchor="middle" class="title">TeckelDataType</text>
+
+  <!-- Numeric -->
+  <rect x="15" y="45" width="160" height="195" class="group"/>
+  <text x="95" y="65" text-anchor="middle" class="cat">Numeric</text>
+  <rect x="30" y="78" width="130" height="22" class="box"/><text x="95" y="94" text-anchor="middle" class="mono">Byte</text><text x="95" y="79" text-anchor="middle" class="alias">tinyint</text>
+  <rect x="30" y="106" width="130" height="22" class="box-v3"/><text x="95" y="122" text-anchor="middle" class="mono">Short</text><text x="95" y="107" text-anchor="middle" class="alias">smallint</text>
+  <rect x="30" y="134" width="130" height="22" class="box"/><text x="95" y="150" text-anchor="middle" class="mono">Integer</text><text x="95" y="135" text-anchor="middle" class="alias">int</text>
+  <rect x="30" y="162" width="130" height="22" class="box"/><text x="95" y="178" text-anchor="middle" class="mono">Long</text><text x="95" y="163" text-anchor="middle" class="alias">bigint</text>
+  <rect x="30" y="190" width="130" height="22" class="box"/><text x="95" y="206" text-anchor="middle" class="mono">Float</text>
+  <rect x="30" y="218" width="130" height="22" class="box"/><text x="95" y="234" text-anchor="middle" class="mono">Double</text>
+
+  <!-- String -->
+  <rect x="190" y="45" width="160" height="138" class="group"/>
+  <text x="270" y="65" text-anchor="middle" class="cat">String</text>
+  <rect x="205" y="78" width="130" height="22" class="box"/><text x="270" y="94" text-anchor="middle" class="mono">String</text>
+  <rect x="205" y="106" width="130" height="22" class="box-v3"/><text x="270" y="122" text-anchor="middle" class="mono">Char(n)</text>
+  <rect x="205" y="134" width="130" height="22" class="box-v3"/><text x="270" y="150" text-anchor="middle" class="mono">VarChar(n)</text>
+  <rect x="205" y="162" width="130" height="22" class="box"/><text x="270" y="178" text-anchor="middle" class="mono">Binary</text>
+
+  <!-- Temporal -->
+  <rect x="365" y="45" width="160" height="195" class="group"/>
+  <text x="445" y="65" text-anchor="middle" class="cat">Temporal</text>
+  <rect x="380" y="78" width="130" height="22" class="box"/><text x="445" y="94" text-anchor="middle" class="mono">Date</text>
+  <rect x="380" y="106" width="130" height="22" class="box"/><text x="445" y="122" text-anchor="middle" class="mono">Timestamp</text>
+  <rect x="380" y="134" width="130" height="22" class="box-v3"/><text x="445" y="150" text-anchor="middle" class="mono">TimestampNtz</text>
+  <rect x="380" y="162" width="130" height="22" class="box-v3"/><text x="445" y="178" text-anchor="middle" class="mono">Time(precision?)</text>
+  <rect x="380" y="190" width="130" height="22" class="box-v3"/><text x="445" y="206" text-anchor="middle" class="mono">YearMonthInterval</text>
+  <rect x="380" y="218" width="130" height="22" class="box-v3"/><text x="445" y="234" text-anchor="middle" class="mono">DayTimeInterval</text>
+
+  <!-- Complex -->
+  <rect x="540" y="45" width="170" height="195" class="group"/>
+  <text x="625" y="65" text-anchor="middle" class="cat">Complex</text>
+  <rect x="555" y="78" width="140" height="22" class="box"/><text x="625" y="94" text-anchor="middle" class="mono">Array(inner)</text>
+  <rect x="555" y="106" width="140" height="22" class="box"/><text x="625" y="122" text-anchor="middle" class="mono">Map(key, value)</text>
+  <rect x="555" y="134" width="140" height="22" class="box"/><text x="625" y="150" text-anchor="middle" class="mono">Struct(fields[])</text>
+  <rect x="555" y="162" width="140" height="22" class="box"/><text x="625" y="178" text-anchor="middle" class="mono">Decimal(p, s)</text>
+  <rect x="555" y="190" width="140" height="22" class="box-v3"/><text x="625" y="206" text-anchor="middle" class="mono">Variant</text>
+
+  <!-- Other -->
+  <rect x="190" y="195" width="160" height="46" class="group"/>
+  <text x="270" y="215" text-anchor="middle" class="cat">Other</text>
+  <rect x="205" y="221" width="130" height="18" class="box"/><text x="270" y="234" text-anchor="middle" class="mono">Boolean</text>
+
+  <!-- Legend -->
+  <rect x="220" y="290" width="14" height="14" class="box"/><text x="242" y="302" class="mono">v2.0 types</text>
+  <rect x="330" y="290" width="14" height="14" class="box-v3"/><text x="352" y="302" class="mono">v3.0 additions</text>
+
+  <text x="360" y="345" text-anchor="middle" class="cat">22 data types · 13 from v2.0 + 9 new in v3.0</text>
+</svg>

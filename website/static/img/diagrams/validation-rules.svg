@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 340" fill="none">
+  <style>
+    text { font-family: 'Inter', 'Geist', system-ui, sans-serif; }
+    .title { font-size: 13px; fill: #09090b; font-weight: 600; }
+    .label { font-size: 11px; fill: #71717a; font-weight: 500; }
+    .mono { font-family: 'Geist Mono', 'JetBrains Mono', monospace; font-size: 10px; fill: #52525b; }
+    .code { font-family: 'Geist Mono', monospace; font-size: 11px; fill: #09090b; font-weight: 600; }
+    .pass { fill: #15803d; } .fail { fill: #b91c1c; }
+    .box { stroke: #e4e4e7; stroke-width: 1; rx: 8; fill: white; }
+    .box-ok { stroke: #bbf7d0; stroke-width: 1; rx: 8; fill: #f0fdf4; }
+    .box-err { stroke: #fecaca; stroke-width: 1; rx: 8; fill: #fef2f2; }
+    .arrow { stroke: #a1a1aa; stroke-width: 1.2; marker-end: url(#va); }
+    @media (prefers-color-scheme: dark) {
+      .title { fill: #fafafa; } .label { fill: #a1a1aa; } .mono { fill: #a1a1aa; }
+      .code { fill: #fafafa; } .pass { fill: #4ade80; } .fail { fill: #f87171; }
+      .box { stroke: #27272a; fill: #18181b; }
+      .box-ok { stroke: #166534; fill: #052e16; }
+      .box-err { stroke: #991b1b; fill: #450a0a; }
+      .arrow { stroke: #52525b; }
+    }
+  </style>
+  <defs>
+    <marker id="va" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+      <path d="M0,0 L7,2.5 L0,5" fill="none" stroke="#a1a1aa" stroke-width="1"/>
+    </marker>
+  </defs>
+
+  <!-- Input -->
+  <rect x="10" y="140" width="100" height="40" class="box"/>
+  <text x="60" y="165" text-anchor="middle" class="title">Pipeline</text>
+  <line x1="110" y1="160" x2="150" y2="160" class="arrow"/>
+
+  <!-- V-008 Version -->
+  <rect x="150" y="20" width="120" height="52" class="box"/>
+  <text x="210" y="40" text-anchor="middle" class="code">V-008</text>
+  <text x="210" y="56" text-anchor="middle" class="mono">Version check</text>
+  <text x="210" y="68" text-anchor="middle" class="mono">"2.0" or "3.0"</text>
+
+  <!-- V-007 AssetRef -->
+  <rect x="150" y="82" width="120" height="52" class="box"/>
+  <text x="210" y="102" text-anchor="middle" class="code">V-007</text>
+  <text x="210" y="118" text-anchor="middle" class="mono">AssetRef format</text>
+  <text x="210" y="130" text-anchor="middle" class="mono">^[a-zA-Z]...$</text>
+
+  <!-- V-005 Non-empty -->
+  <rect x="150" y="144" width="120" height="52" class="box"/>
+  <text x="210" y="164" text-anchor="middle" class="code">V-005</text>
+  <text x="210" y="180" text-anchor="middle" class="mono">Non-empty lists</text>
+  <text x="210" y="192" text-anchor="middle" class="mono">input/output >= 1</text>
+
+  <!-- V-001 References -->
+  <rect x="150" y="206" width="120" height="52" class="box"/>
+  <text x="210" y="226" text-anchor="middle" class="code">V-001</text>
+  <text x="210" y="242" text-anchor="middle" class="mono">Reference integrity</text>
+  <text x="210" y="254" text-anchor="middle" class="mono">all refs resolve</text>
+
+  <!-- V-003 Output refs -->
+  <rect x="150" y="268" width="120" height="52" class="box"/>
+  <text x="210" y="288" text-anchor="middle" class="code">V-003</text>
+  <text x="210" y="304" text-anchor="middle" class="mono">Output refs</text>
+  <text x="210" y="316" text-anchor="middle" class="mono">input/transform only</text>
+
+  <!-- V-002 Cycles -->
+  <rect x="310" y="140" width="120" height="52" class="box"/>
+  <text x="370" y="160" text-anchor="middle" class="code">V-002</text>
+  <text x="370" y="176" text-anchor="middle" class="mono">Cycle detection</text>
+  <text x="370" y="188" text-anchor="middle" class="mono">DAG acyclicity</text>
+
+  <!-- Arrows -->
+  <line x1="150" y1="160" x2="150" y2="46" class="arrow"/>
+  <line x1="270" y1="46" x2="310" y2="160" class="arrow"/>
+  <line x1="270" y1="108" x2="310" y2="160" class="arrow"/>
+  <line x1="270" y1="170" x2="310" y2="166" class="arrow"/>
+  <line x1="270" y1="232" x2="310" y2="166" class="arrow"/>
+  <line x1="270" y1="294" x2="310" y2="166" class="arrow"/>
+  <line x1="430" y1="166" x2="470" y2="166" class="arrow"/>
+
+  <!-- Result -->
+  <rect x="470" y="110" width="100" height="44" class="box-ok"/>
+  <text x="520" y="128" text-anchor="middle" class="pass">Ok</text>
+  <text x="520" y="146" text-anchor="middle" class="mono">Pipeline</text>
+
+  <rect x="470" y="166" width="100" height="44" class="box-err"/>
+  <text x="520" y="184" text-anchor="middle" class="fail">Err</text>
+  <text x="520" y="202" text-anchor="middle" class="mono">TeckelError</text>
+
+  <line x1="430" y1="155" x2="470" y2="132" class="arrow"/>
+  <line x1="430" y1="175" x2="470" y2="188" class="arrow"/>
+
+  <!-- Error codes sample -->
+  <rect x="590" y="130" width="100" height="90" class="box"/>
+  <text x="640" y="150" text-anchor="middle" class="code">34 codes</text>
+  <text x="640" y="168" text-anchor="middle" class="mono">ERef001</text>
+  <text x="640" y="182" text-anchor="middle" class="mono">ECycle001</text>
+  <text x="640" y="196" text-anchor="middle" class="mono">EVersion001</text>
+  <text x="640" y="210" text-anchor="middle" class="mono">...</text>
+  <line x1="570" y1="188" x2="590" y2="175" class="arrow"/>
+</svg>
