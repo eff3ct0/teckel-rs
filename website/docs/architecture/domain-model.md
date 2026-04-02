@@ -26,6 +26,8 @@ pub type Context = BTreeMap<AssetRef, Asset>;
 
 ## Source enum
 
+![Expression AST](/img/diagrams/expression-ast.svg)
+
 The `Source` enum is the heart of the domain model. It has 47 variants: 2 I/O types and 45 transformations.
 
 ```rust
@@ -116,6 +118,8 @@ impl Source {
 ```
 
 ## TeckelDataType
+
+![Type system](/img/diagrams/type-system.svg)
 
 The type system covers all Teckel v3.0 data types:
 

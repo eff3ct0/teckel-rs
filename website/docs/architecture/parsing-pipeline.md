@@ -7,6 +7,8 @@ title: Parsing Pipeline
 
 The `teckel_parser::parse()` function runs an 8-step pipeline that transforms a raw YAML string into a fully validated `Pipeline`. Each step is implemented in a dedicated module.
 
+![Parsing pipeline](/img/diagrams/parsing-pipeline.svg)
+
 ## Pipeline steps
 
 ### 1. Variable substitution

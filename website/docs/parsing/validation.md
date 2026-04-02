@@ -7,6 +7,8 @@ title: Validation
 
 The parser runs semantic validation after converting the YAML document to the domain model. Validation checks are named V-001 through V-008, following the Teckel Specification.
 
+![Validation rules](/img/diagrams/validation-rules.svg)
+
 **Module:** `crates/teckel-parser/src/validate.rs`
 
 ## Validation rules

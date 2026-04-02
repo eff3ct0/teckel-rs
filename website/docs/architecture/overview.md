@@ -7,6 +7,8 @@ title: Overview
 
 teckel-rs follows a strict two-crate architecture that separates domain types from parsing logic.
 
+![Architecture overview](/img/diagrams/architecture.svg)
+
 ## Crate dependency graph
 
 ```

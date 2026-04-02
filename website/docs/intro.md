@@ -8,6 +8,8 @@ title: Teckel Parser (teckel-rs)
 
 **teckel-rs** is the Rust implementation of the [Teckel Specification v3.0](https://teckel.rafaelfernandez.dev/docs/intro) parser. It takes YAML pipeline definitions and produces a fully validated, typed domain model ready for execution by a downstream engine.
 
+![teckel-rs architecture](/img/diagrams/architecture.svg)
+
 The project is split into two crates:
 
 | Crate | Purpose |
