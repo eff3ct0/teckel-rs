@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 200" fill="none">
+  <style>
+    text { font-family: 'Inter', 'Geist', system-ui, sans-serif; }
+    .label { font-size: 11px; fill: #71717a; font-weight: 500; }
+    .step { font-size: 12px; fill: #09090b; font-weight: 600; }
+    .mono { font-family: 'Geist Mono', 'JetBrains Mono', monospace; font-size: 10px; fill: #52525b; }
+    .box { stroke: #e4e4e7; stroke-width: 1; rx: 8; fill: white; }
+    .box-active { stroke: #d4d4d8; stroke-width: 1; rx: 8; fill: #fafafa; }
+    .arrow { stroke: #a1a1aa; stroke-width: 1.2; marker-end: url(#arr); }
+    .num { font-size: 10px; fill: white; font-weight: 700; }
+    .circle { fill: #09090b; }
+    @media (prefers-color-scheme: dark) {
+      .step { fill: #fafafa; }
+      .label { fill: #a1a1aa; }
+      .mono { fill: #a1a1aa; }
+      .box { stroke: #27272a; fill: #18181b; }
+      .box-active { stroke: #3f3f46; fill: #27272a; }
+      .arrow { stroke: #52525b; }
+      .circle { fill: #fafafa; }
+      .num { fill: #09090b; }
+    }
+  </style>
+  <defs>
+    <marker id="arr" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+      <path d="M0,0 L7,2.5 L0,5" fill="none" stroke="#a1a1aa" stroke-width="1"/>
+    </marker>
+  </defs>
+
+  <!-- Step 1: Raw YAML -->
+  <rect x="10" y="50" width="110" height="100" class="box"/>
+  <circle cx="30" cy="70" r="9" class="circle"/><text x="30" y="74" text-anchor="middle" class="num">1</text>
+  <text x="65" y="88" text-anchor="middle" class="step">Deserialize</text>
+  <text x="65" y="105" text-anchor="middle" class="mono">serde_yaml</text>
+  <text x="65" y="118" text-anchor="middle" class="mono">→ RawDocument</text>
+  <line x1="120" y1="100" x2="145" y2="100" class="arrow"/>
+
+  <!-- Step 2: Variables -->
+  <rect x="145" y="50" width="110" height="100" class="box"/>
+  <circle cx="165" cy="70" r="9" class="circle"/><text x="165" y="74" text-anchor="middle" class="num">2</text>
+  <text x="200" y="88" text-anchor="middle" class="step">Variables</text>
+  <text x="200" y="105" text-anchor="middle" class="mono">${VAR:default}</text>
+  <text x="200" y="118" text-anchor="middle" class="mono">substitution</text>
+  <line x1="255" y1="100" x2="280" y2="100" class="arrow"/>
+
+  <!-- Step 3: Secrets -->
+  <rect x="280" y="50" width="110" height="100" class="box"/>
+  <circle cx="300" cy="70" r="9" class="circle"/><text x="300" y="74" text-anchor="middle" class="num">3</text>
+  <text x="335" y="88" text-anchor="middle" class="step">Secrets</text>
+  <text x="335" y="105" text-anchor="middle" class="mono">{{secrets.key}}</text>
+  <text x="335" y="118" text-anchor="middle" class="mono">resolution</text>
+  <line x1="390" y1="100" x2="415" y2="100" class="arrow"/>
+
+  <!-- Step 4: Config Merge -->
+  <rect x="415" y="50" width="110" height="100" class="box"/>
+  <circle cx="435" cy="70" r="9" class="circle"/><text x="435" y="74" text-anchor="middle" class="num">4</text>
+  <text x="470" y="88" text-anchor="middle" class="step">Merge</text>
+  <text x="470" y="105" text-anchor="middle" class="mono">deep merge</text>
+  <text x="470" y="118" text-anchor="middle" class="mono">config files</text>
+  <line x1="525" y1="100" x2="550" y2="100" class="arrow"/>
+
+  <!-- Step 5: Rewrite -->
+  <rect x="550" y="50" width="110" height="100" class="box"/>
+  <circle cx="570" cy="70" r="9" class="circle"/><text x="570" y="74" text-anchor="middle" class="num">5</text>
+  <text x="605" y="88" text-anchor="middle" class="step">Rewrite</text>
+  <text x="605" y="105" text-anchor="middle" class="mono">YAML structs</text>
+  <text x="605" y="118" text-anchor="middle" class="mono">→ Domain model</text>
+  <line x1="660" y1="100" x2="685" y2="100" class="arrow"/>
+
+  <!-- Step 6: Validate -->
+  <rect x="685" y="50" width="110" height="100" class="box-active"/>
+  <circle cx="705" cy="70" r="9" class="circle"/><text x="705" y="74" text-anchor="middle" class="num">6</text>
+  <text x="740" y="88" text-anchor="middle" class="step">Validate</text>
+  <text x="740" y="105" text-anchor="middle" class="mono">V-001..V-008</text>
+  <text x="740" y="118" text-anchor="middle" class="mono">DAG + refs</text>
+
+  <!-- Labels -->
+  <text x="65" y="35" text-anchor="middle" class="label">Input</text>
+  <text x="740" y="170" text-anchor="middle" class="label">Result&lt;Pipeline, TeckelError&gt;</text>
+</svg>
